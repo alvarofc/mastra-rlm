@@ -6,6 +6,7 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^25.2.3",
+    "@types/pdf-parse": "^1.1.5",
     "mastra": "^1.3.0"
   },
   "peerDependencies": {
@@ -15,9 +16,12 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "mastra dev",
+    "dev": "rm -rf .mastra/output && mastra dev",
     "build": "mastra build",
-    "start": "mastra start"
+    "start": "mastra start",
+    "eval:rlm-list-files": "bun run src/mastra/evaluations/rlm-list-files-regression.ts",
+    "test:rlm": "bun test src/mastra/rlm/__tests__/rlm-runner.test.ts",
+    "example:rlm": "bun run src/mastra/rlm/examples/run.ts"
   },
   "dependencies": {
     "@mastra/core": "^1.3.0",
@@ -26,6 +30,9 @@
     "@mastra/loggers": "^1.0.1",
     "@mastra/memory": "^1.2.0",
     "@mastra/observability": "^1.2.0",
+    "@mastra/s3": "^0.0.1",
+    "mammoth": "^1.11.0",
+    "pdf-parse": "^2.4.5",
     "zod": "^4"
   }
 }
