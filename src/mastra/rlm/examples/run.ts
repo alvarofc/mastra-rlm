@@ -10,37 +10,29 @@ async function main(): Promise<void> {
     );
   }
 
-  const controllerModel = process.env.RLM_CONTROLLER_MODEL ?? 'groq/llama-3.3-70b-versatile';
-  const scannerModel = process.env.RLM_SCANNER_MODEL;
+  const rootModel =
+    process.env.RLM_ROOT_MODEL ?? 'groq/llama-3.3-70b-versatile';
+  const subModel = process.env.RLM_SUB_MODEL ?? rootModel;
 
   const runner = new RlmRunner({
     workspace,
-    controllerModel: { id: controllerModel },
-    scannerModel: scannerModel ? { id: scannerModel } : undefined,
+    rootModel: { id: rootModel },
+    subModel: { id: subModel },
   });
 
   const result = await runner.run({
     task,
-    taskType: 'synthesis',
     sources: sourcePaths.map(path => ({ path })),
     output: {
       format: 'md',
       path: outputPath,
     },
-    grounding: {
-      requireQuotes: true,
-      allowInference: false,
-      allowSynthesis: true,
-    },
     budgets: {
-      maxDepth: 5,
-      maxIterations: 200,
-      scannerBatchSize: 20,
-      scannerConcurrency: 4,
-      searchTopK: 1000,
+      maxIterations: 30,
+      maxCalls: 50,
+      maxDepth: 1,
+      maxOutputChars: 10_000,
     },
-    contradictionPolicy: 'report',
-    outputCitations: 'both',
   });
 
   console.log(`runId: ${result.runId}`);

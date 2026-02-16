@@ -1,31 +1,81 @@
 # mastra-rlm
 
-Welcome to your new [Mastra](https://mastra.ai/) project! We're excited to see what you'll build.
+`mastra-rlm` is a Mastra project plus a reusable package (`mastra-rlm-kit`) for running a paper-faithful Recursive Language Model (RLM) loop with:
 
-## Getting Started
+- a root model that writes Python REPL steps
+- optional recursive sub-queries (`llm_query`, `llm_query_batched`)
+- full run artifacts (output, trajectory, events, recursion tree)
 
-Start the development server:
+If you are new to this repo, start with the Quickstart below and run one benchmark command first.
 
-```shell
+## Quickstart
+
+1) Install dependencies:
+
+```bash
+bun install
+```
+
+2) Build the reusable package once:
+
+```bash
+bun run build:pkg:rlm
+```
+
+3) Set model credentials (example for OpenRouter):
+
+```bash
+export OPENROUTER_API_KEY=...
+```
+
+4) Run a small benchmark smoke test:
+
+```bash
+bun run eval:oolong --cases=1 --rows-per-request=1
+```
+
+5) Open Mastra Studio (optional):
+
+```bash
 bun run dev
 ```
 
-Open [http://localhost:4111](http://localhost:4111) in your browser to access [Mastra Studio](https://mastra.ai/docs/getting-started/studio). It provides an interactive UI for building and testing your agents, along with a REST API that exposes your Mastra application as a local service. This lets you start building without worrying about integration right away.
+Studio runs at `http://localhost:4111`.
 
-You can start editing files inside the `src/mastra` directory. The development server will automatically reload whenever you make changes.
+## What is in this repo
 
-## RLM in Studio UI
+- App integration: `src/mastra/*`
+- Reusable package source: `packages/mastra-rlm/*`
+- Real benchmark runner: `src/mastra/evaluations/oolong-real-eval.ts`
+- Synthetic benchmark runner: `src/mastra/evaluations/oolong-long-context-eval.ts`
 
-This project includes an RLM runner integrated into Mastra Studio:
+The package exports:
 
-- **Agent path:** Use `rlm-agent` in the chat UI and ask it to run grounded generation from workspace files/folders.
-- **Workflow path:** Run `rlm-workflow` directly from the Workflows tab with structured input.
+- `createRlmRunner`
+- `createRlmTool`
+- `createRlmWorkflow`
+- `defaultSandboxAdapter`
+
+## Core scripts
+
+- `bun run dev` - start Mastra Studio
+- `bun run build` - build Mastra app
+- `bun run build:pkg:rlm` - build `mastra-rlm-kit`
+- `bun run eval:oolong` - run real Oolong benchmark
+- `bun run eval:oolong:synthetic` - run synthetic long-context benchmark
+
+## RLM usage in Studio
+
+This project exposes RLM in two ways:
+
+- Agent path: `rlm-agent` in Studio chat
+- Workflow path: `rlm-workflow` in Studio workflows
 
 Example workflow input:
 
 ```json
 {
-  "task": "Compare both policy documents and produce a grounded summary",
+  "task": "Compare both policy documents and produce a final answer",
   "sources": [
     { "path": "/docs/policy-a.pdf" },
     { "path": "/docs/policy-b.pdf" }
@@ -33,46 +83,99 @@ Example workflow input:
   "output": {
     "format": "md",
     "path": "/rlm/outputs/policy-comparison.md"
+  },
+  "budgets": {
+    "maxIterations": 30,
+    "maxCalls": 50,
+    "maxDepth": 1,
+    "maxOutputChars": 10000
   }
 }
 ```
 
-Outputs are written to workspace paths and each run emits an audit file with claim-to-evidence mapping.
+Run result paths include:
 
-### Set smart + small models
+- `outputPath` - final answer file
+- `auditPath` - run summary JSON
+- `eventsPath` - JSONL event stream
+- `recursionPath` - recursive call tree summary
 
-You can configure model split in two ways:
+## Model configuration
 
-1. Global defaults via env:
+Global defaults via env vars:
 
 ```bash
-OPENROUTER_API_KEY=...
 RLM_AGENT_MODEL=openrouter/minimax/minimax-m2.5
-RLM_CONTROLLER_MODEL=openai/gpt-4.1
-RLM_SCANNER_MODEL=openai/gpt-4.1-mini
+RLM_ROOT_MODEL=openrouter/moonshotai/kimi-k2.5
+RLM_SUB_MODEL=openrouter/minimax/minimax-m2.5
 ```
 
-`RLM_AGENT_MODEL` controls the default chat model used by `rlm-agent` in Studio.
+Per-run override is also supported via workflow/tool input (`rootModelId`, `subModelId`).
 
-2. Per-run override in `rlm-workflow` input:
+## Benchmark policy (strict mode)
 
-```json
-{
-  "controllerModelId": "openai/gpt-4.1",
-  "scannerModelId": "openai/gpt-4.1-mini"
-}
+For strict benchmark runs, this repo does not rewrite benchmark questions or labels. It only:
+
+- reads dataset rows
+- runs the RLM loop
+- scores predicted output against provided expected answers
+
+This keeps comparisons reproducible and avoids benchmark prompt tampering.
+
+## Oolong benchmark
+
+Real dataset (`oolongbench/oolong-real`):
+
+```bash
+bun run eval:oolong
 ```
 
-You can also override per run when using `run_rlm` through `rlm-agent` by passing `controllerModelId` and `scannerModelId`.
+Useful options:
 
-## Learn more
+```bash
+bun run eval:oolong --help
+bun run eval:oolong --cases=10 --question-types=singledoc_rolls,multidoc_counts
+```
 
-To learn more about Mastra, visit our [documentation](https://mastra.ai/docs/). Your bootstrapped project includes example code for [agents](https://mastra.ai/docs/agents/overview), [tools](https://mastra.ai/docs/agents/using-tools), [workflows](https://mastra.ai/docs/workflows/overview), [scorers](https://mastra.ai/docs/evals/overview), and [observability](https://mastra.ai/docs/observability/overview).
+Synthetic needle-in-a-haystack run:
 
-If you're new to AI agents, check out our [course](https://mastra.ai/course) and [YouTube videos](https://youtube.com/@mastra-ai). You can also join our [Discord](https://discord.gg/BTYqqHKUrf) community to get help and share your projects.
+```bash
+bun run eval:oolong:synthetic
+```
 
-## Deploy on Mastra Cloud
+## Latest real-dataset result
 
-[Mastra Cloud](https://cloud.mastra.ai/) gives you a serverless agent environment with atomic deployments. Access your agents from anywhere and monitor performance. Make sure they don't go off the rails with evals and tracing.
+Command:
 
-Check out the [deployment guide](https://mastra.ai/docs/deployment/overview) for more details.
+```bash
+bun run eval:oolong --dataset=oolongbench/oolong-real --config=dnd --split=validation --offset=17 --cases=20 --rows-per-request=1 --max-iterations=60 --max-calls=180 --max-depth=2 --max-output-chars=20000 --root-model=openrouter/moonshotai/kimi-k2.5 --sub-model=openrouter/minimax/minimax-m2.5 --workspace-dir="/tmp/oolong-real-kimi-main-m25-sub" --report-path=/benchmarks/oolong-real/reports/kimi-main-m25-sub.json
+```
+
+Summary:
+
+- Cases: 20
+- Completed: 20 (failed: 0, skipped: 0)
+- Accuracy: 20.0% (4/20)
+- Slice: `singledoc_spells`
+- Avg duration: 76.0s (median: 68.3s)
+- Avg sub-LLM calls: 7.7 (max: 15)
+
+Result interpretation:
+
+- Primary score is exact-match accuracy (official metric).
+- Many failures are near misses (for example numeric off-by-one, partially correct ordered lists, or semantically close but non-canonical spell names).
+- Near misses are useful diagnostics, but they are not counted as correct in benchmark reporting.
+
+Report path:
+
+`/tmp/oolong-real-kimi-main-m25-sub/benchmarks/oolong-real/reports/kimi-main-m25-sub.json`
+
+## References
+
+- Recursive Language Models paper: [Recursive Language Models (Zhang et al., 2025)](https://arxiv.org/abs/2512.24601)
+- DSPy: [dspy.ai](https://dspy.ai/) and [github.com/stanfordnlp/dspy](https://github.com/stanfordnlp/dspy)
+- Practical article: [Going Beyond the Context Window: Recursive Language Models in Action](https://towardsdatascience.com/going-beyond-the-context-window-recursive-language-models-in-action/)
+
+## License
+
+MIT. See `LICENSE`.

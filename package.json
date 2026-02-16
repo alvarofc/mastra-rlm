@@ -1,13 +1,17 @@
 {
   "name": "mastra-rlm",
+  "license": "MIT",
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^25.2.3",
     "@types/pdf-parse": "^1.1.5",
-    "mastra": "^1.3.0"
+    "mastra": "^1.3.1"
   },
   "peerDependencies": {
     "typescript": "^5.9.3"
@@ -16,21 +20,30 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "build:pkg:rlm": "bun run --cwd packages/mastra-rlm build",
+    "pack:pkg:rlm": "bun run --cwd packages/mastra-rlm pack:dry",
+    "predev": "bun run build:pkg:rlm",
+    "prebuild": "bun run build:pkg:rlm",
     "dev": "rm -rf .mastra/output && mastra dev",
     "build": "mastra build",
     "start": "mastra start",
     "eval:rlm-list-files": "bun run src/mastra/evaluations/rlm-list-files-regression.ts",
+    "eval:oolong": "bun run src/mastra/evaluations/oolong-real-eval.ts",
+    "eval:oolong:synthetic": "bun run src/mastra/evaluations/oolong-long-context-eval.ts",
+    "pretest:rlm": "bun run build:pkg:rlm",
     "test:rlm": "bun test src/mastra/rlm/__tests__/rlm-runner.test.ts",
+    "preexample:rlm": "bun run build:pkg:rlm",
     "example:rlm": "bun run src/mastra/rlm/examples/run.ts"
   },
   "dependencies": {
-    "@mastra/core": "^1.3.0",
+    "@mastra/core": "^1.4.0",
     "@mastra/evals": "^1.1.1",
-    "@mastra/libsql": "^1.3.0",
+    "@mastra/libsql": "^1.4.0",
     "@mastra/loggers": "^1.0.1",
-    "@mastra/memory": "^1.2.0",
+    "@mastra/memory": "^1.3.0",
     "@mastra/observability": "^1.2.0",
-    "@mastra/s3": "^0.0.1",
+    "@mastra/s3": "^0.1.0",
+    "mastra-rlm-kit": "workspace:*",
     "mammoth": "^1.11.0",
     "pdf-parse": "^2.4.5",
     "zod": "^4"

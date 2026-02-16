@@ -1,0 +1,48 @@
+{
+  "name": "mastra-rlm-kit",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Paper-faithful Recursive Language Model (RLM) loop for Mastra",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build:js": "bun build ./src/index.ts --outdir ./dist --format esm --target node --packages external",
+    "build:types": "tsc -p tsconfig.build.json",
+    "build": "bun run clean && bun run build:js && bun run build:types",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "pack:dry": "npm pack --dry-run",
+    "prepublishOnly": "bun run typecheck && bun run build"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "docs"
+  ],
+  "peerDependencies": {
+    "@mastra/core": "^1.4.0",
+    "zod": "^4"
+  },
+  "dependencies": {
+    "mammoth": "^1.11.0",
+    "pdf-parse": "^2.4.5"
+  }
+}

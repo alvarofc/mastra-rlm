@@ -19,7 +19,7 @@ Use these commands to interact with the project.
 ### Installation
 
 ```bash
-npm install
+bun install
 ```
 
 ### Development
@@ -27,7 +27,7 @@ npm install
 Start the Mastra Studio at localhost:4111 by running the `dev` script:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 ### Build
@@ -35,7 +35,7 @@ npm run dev
 In order to build a production-ready server, run the `build` script:
 
 ```bash
-npm run build
+bun run build
 ```
 
 ## Project Structure

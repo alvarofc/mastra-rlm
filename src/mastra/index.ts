@@ -9,6 +9,7 @@ import {
 } from "@mastra/observability";
 import { weatherWorkflow } from "./workflows/weather-workflow";
 import { rlmWorkflow } from "./workflows/rlm-workflow";
+import { projectArticleWorkflow } from "./workflows/project-article-workflow";
 import { weatherAgent } from "./agents/weather-agent";
 import { rlmAgent } from "./agents/rlm-agent";
 import { workspace } from "./workspace/workspace";
@@ -19,7 +20,7 @@ import {
 } from "./scorers/weather-scorer";
 
 export const mastra = new Mastra({
-  workflows: { weatherWorkflow, rlmWorkflow },
+  workflows: { weatherWorkflow, rlmWorkflow, projectArticleWorkflow },
   workspace,
   agents: { weatherAgent, rlmAgent },
   scorers: {

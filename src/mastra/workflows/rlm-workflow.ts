@@ -1,29 +1,22 @@
 import { createRlmWorkflow } from '../rlm-workflow';
 import { workspace } from '../workspace/workspace';
 
-const controllerModelId = process.env.RLM_CONTROLLER_MODEL ?? 'groq/llama-3.3-70b-versatile';
-const scannerModelId = process.env.RLM_SCANNER_MODEL;
+const rootModelId =
+  process.env.RLM_ROOT_MODEL ?? process.env.RLM_AGENT_MODEL ?? 'openrouter/minimax/minimax-m2.5';
+const subModelId = process.env.RLM_SUB_MODEL ?? rootModelId;
 
 export const rlmWorkflow = createRlmWorkflow({
   workspace,
   models: {
-    controller: { id: controllerModelId },
-    scanner: scannerModelId ? { id: scannerModelId } : undefined,
+    root: { id: rootModelId },
+    sub: { id: subModelId },
   },
   defaults: {
-    grounding: {
-      requireQuotes: true,
-      allowInference: false,
-      allowSynthesis: true,
-    },
     budgets: {
-      maxDepth: 5,
-      maxIterations: 200,
-      scannerBatchSize: 20,
-      scannerConcurrency: 4,
-      searchTopK: 1000,
+      maxIterations: 30,
+      maxCalls: 50,
+      maxDepth: 1,
+      maxOutputChars: 10_000,
     },
-    contradictionPolicy: 'report',
-    outputCitations: 'both',
   },
 });
