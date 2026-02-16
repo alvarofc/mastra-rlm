@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "license": "MIT",
   "description": "Paper-faithful Recursive Language Model (RLM) loop for Mastra",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alvarofc/mastra-rlm"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
