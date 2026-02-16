@@ -42,3 +42,8 @@ dist
 *.db-*
 .netlify
 .vercel
+
+# generated local benchmark/workspace artifacts
+src/mastra/public/workspace/rlm/runs/
+src/mastra/public/*.db
+src/mastra/public/*.db-*
