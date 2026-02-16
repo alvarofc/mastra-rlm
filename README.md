@@ -1,62 +1,116 @@
 # mastra-rlm
 
-`mastra-rlm` is a Mastra project plus a reusable package (`mastra-rlm-kit`) for running a paper-faithful Recursive Language Model (RLM) loop with:
+`mastra-rlm` is a repository centered on the reusable package **`mastra-rlm-kit`**, with a Mastra app in `src/mastra` as a working example and benchmark harness.
+
+## Read this first
+
+If you are new to the project, follow this order:
+
+1. This README (package-first overview + commands)
+2. Package README: [`packages/mastra-rlm/README.md`](packages/mastra-rlm/README.md)
+3. Technical article: [`packages/mastra-rlm/docs/mastra-rlm-technical-article.md`](packages/mastra-rlm/docs/mastra-rlm-technical-article.md)
+
+The package README and technical article are the deepest docs; this root README is the central index so information is not scattered.
+
+## Package first: `mastra-rlm-kit`
+
+`mastra-rlm-kit` is a portable, paper-faithful Recursive Language Model loop for Mastra with:
 
 - a root model that writes Python REPL steps
 - optional recursive sub-queries (`llm_query`, `llm_query_batched`)
-- full run artifacts (output, trajectory, events, recursion tree)
+- deterministic run artifacts (output, audit, events, recursion tree)
 
-If you are new to this repo, start with the Quickstart below and run one benchmark command first.
+### Install
 
-## Quickstart
+```bash
+npm install mastra-rlm-kit @mastra/core zod
+```
 
-1) Install dependencies:
+### Exports
+
+- `createRlmRunner(options)`
+- `createRlmTool(options)`
+- `createRlmWorkflow(options)`
+- `defaultSandboxAdapter`
+
+### Quick start (tool)
+
+```ts
+import { createRlmTool } from "mastra-rlm-kit";
+import { workspace } from "./workspace";
+
+export const runRlmTool = createRlmTool({
+  workspace,
+  defaults: {
+    rootModelId: "openrouter/moonshotai/kimi-k2.5",
+    subModelId: "openrouter/minimax/minimax-m2.5",
+    budgets: {
+      maxIterations: 30,
+      maxCalls: 50,
+      maxDepth: 1,
+      maxOutputChars: 10000,
+    },
+  },
+});
+```
+
+### Quick start (workflow)
+
+```ts
+import { createRlmWorkflow } from "mastra-rlm-kit";
+import { workspace } from "./workspace";
+
+export const rlmWorkflow = createRlmWorkflow({
+  workspace,
+  models: {
+    root: { id: "openrouter/moonshotai/kimi-k2.5" },
+    sub: { id: "openrouter/minimax/minimax-m2.5" },
+  },
+  defaults: {
+    budgets: {
+      maxIterations: 30,
+      maxCalls: 50,
+      maxDepth: 1,
+      maxOutputChars: 10000,
+    },
+  },
+});
+```
+
+### Release (package)
+
+From `packages/mastra-rlm`:
+
+```bash
+bun run typecheck
+bun run build
+bun run pack:dry
+npm publish --access public
+```
+
+This repo also includes CI publishing via:
+
+- `.github/workflows/release-mastra-rlm-kit.yml`
+
+Tag format:
+
+- `mastra-rlm-kit-vX.Y.Z` (must match `packages/mastra-rlm/package.json` version)
+
+## Example app in this repo (`src/mastra`)
+
+The app demonstrates package integration in a real Mastra project.
+
+### Setup and run
 
 ```bash
 bun install
-```
-
-2) Build the reusable package once:
-
-```bash
 bun run build:pkg:rlm
-```
-
-3) Set model credentials (example for OpenRouter):
-
-```bash
-export OPENROUTER_API_KEY=...
-```
-
-4) Run a small benchmark smoke test:
-
-```bash
-bun run eval:oolong --cases=1 --rows-per-request=1
-```
-
-5) Open Mastra Studio (optional):
-
-```bash
 bun run dev
 ```
 
 Studio runs at `http://localhost:4111`.
 
-## What is in this repo
-
-- App integration: `src/mastra/*`
-- Reusable package source: `packages/mastra-rlm/*`
-- Real benchmark runner: `src/mastra/evaluations/oolong-real-eval.ts`
-- Synthetic benchmark runner: `src/mastra/evaluations/oolong-long-context-eval.ts`
-
-The package exports:
-
-- `createRlmRunner`
-- `createRlmTool`
-- `createRlmWorkflow`
-- `defaultSandboxAdapter`
-
-## Core scripts
+### Core scripts
 
 - `bun run dev` - start Mastra Studio
 - `bun run build` - build Mastra app
@@ -64,9 +118,7 @@ The package exports:
 - `bun run eval:oolong` - run real Oolong benchmark
 - `bun run eval:oolong:synthetic` - run synthetic long-context benchmark
 
-## RLM usage in Studio
-
-This project exposes RLM in two ways:
+### RLM integration paths
 
 - Agent path: `rlm-agent` in Studio chat
 - Workflow path: `rlm-workflow` in Studio workflows
@@ -100,7 +152,7 @@ Run result paths include:
 - `eventsPath` - JSONL event stream
 - `recursionPath` - recursive call tree summary
 
-## Model configuration
+### Model configuration
 
 Global defaults via env vars:
 
@@ -110,9 +162,11 @@ RLM_ROOT_MODEL=openrouter/moonshotai/kimi-k2.5
 RLM_SUB_MODEL=openrouter/minimax/minimax-m2.5
 ```
 
-Per-run override is also supported via workflow/tool input (`rootModelId`, `subModelId`).
+Per-run overrides are supported via `rootModelId` and `subModelId` in workflow/tool input.
 
-## Benchmark policy (strict mode)
+## Benchmarks
+
+### Strict benchmark policy
 
 For strict benchmark runs, this repo does not rewrite benchmark questions or labels. It only:
 
@@ -122,7 +176,7 @@ For strict benchmark runs, this repo does not rewrite benchmark questions or lab
 
 This keeps comparisons reproducible and avoids benchmark prompt tampering.
 
-## Oolong benchmark
+### Oolong benchmark commands
 
 Real dataset (`oolongbench/oolong-real`):
 
@@ -143,7 +197,7 @@ Synthetic needle-in-a-haystack run:
 bun run eval:oolong:synthetic
 ```
 
-## Latest real-dataset result
+### Latest real-dataset result
 
 Command:
 
@@ -168,7 +222,13 @@ Result interpretation:
 
 Report path:
 
-`/tmp/oolong-real-kimi-main-m25-sub/benchmarks/oolong-real/reports/kimi-main-m25-sub.json`
+- `/tmp/oolong-real-kimi-main-m25-sub/benchmarks/oolong-real/reports/kimi-main-m25-sub.json`
+
+Note on `/tmp` paths:
+
+- `/tmp/...` is local to the machine that ran the benchmark and is not stored in this repository.
+- Use your own `--workspace-dir` to choose where artifacts are written.
+- If `--workspace-dir` is omitted, the runner creates a temporary directory automatically.
 
 ## References
 

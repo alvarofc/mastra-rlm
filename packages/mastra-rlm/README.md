@@ -2,6 +2,10 @@
 
 Portable, paper-faithful Recursive Language Model (RLM) package for Mastra.
 
+Repository-level docs (integration example, benchmarks, and release context) are centralized in:
+
+- `../../README.md`
+
 ## Install
 
 ```bash
