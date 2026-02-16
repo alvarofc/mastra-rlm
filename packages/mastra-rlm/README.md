@@ -25,34 +25,7 @@ For a full technical write-up (architecture, loop mechanics, tradeoffs, and refe
 - `createRlmWorkflow(options)`
 - `defaultSandboxAdapter`
 
-## Release
 
-From `packages/mastra-rlm`:
-
-```bash
-bun run typecheck
-bun run build
-bun run pack:dry
-npm publish --access public
-```
-
-## CI Release
-
-This repo includes automated publish workflow at:
-
-- `.github/workflows/release-mastra-rlm-kit.yml`
-
-Requirements:
-
-- Add repository secret `NPM_TOKEN` with publish permissions.
-- Push a tag in the format `mastra-rlm-kit-vX.Y.Z` matching `packages/mastra-rlm/package.json` version.
-
-Example:
-
-```bash
-git tag mastra-rlm-kit-v0.1.0
-git push origin mastra-rlm-kit-v0.1.0
-```
 
 ## Quick Start
 
